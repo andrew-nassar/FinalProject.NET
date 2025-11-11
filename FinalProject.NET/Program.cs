@@ -1,3 +1,9 @@
+﻿
+using Booking.API.Models;
+using FinalProject.NET.DBcontext;
+using FinalProject.NET.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinalProject.NET
 {
@@ -6,6 +12,23 @@ namespace FinalProject.NET
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // 🔹 ربط DbContext مع Connection String
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // 🔹 إعداد Identity
+            builder.Services.AddIdentity<Person, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedEmail = true; // ???? ????? ???????
+            })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+            // ------------------------
+            // email_service 
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            // end email_service
 
             // Add services to the container.
 
