@@ -1,19 +1,15 @@
-﻿using System.Text.Json;
-using System.Text.RegularExpressions;
-using Booking.API.Models;
+﻿using Booking.API.Models;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
 using FinalProject.NET.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Org.BouncyCastle.Crypto.Generators;
 
 namespace FinalProject.NET.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -39,13 +35,6 @@ namespace FinalProject.NET.Controllers
             _env = env;
             _logger = logger;
         }
-        [HttpPost("uplaod")]
-
-        public async Task<IActionResult> UploadPhoto(IFormFile image)
-        {
-            return StatusCode(StatusCodes.Status201Created, new { success = true, message = "Upload photo sucess" });
-        }
-
         [HttpGet("specializations")]
         public async Task<IActionResult> GetSpecializations()
         {
@@ -66,10 +55,8 @@ namespace FinalProject.NET.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var errors = await ValidateCommonAsync(model);
-            if (errors.Any()) return BadRequest(new { success = false, errors });
 
-            // create user
+
             var user = new User
             {
                 FirstName = model.FirstName,
@@ -82,9 +69,45 @@ namespace FinalProject.NET.Controllers
             var createResult = await _userManager.CreateAsync(user, model.Password);
             if (!createResult.Succeeded) return BadRequest(createResult.Errors.Select(e => e.Description));
 
-            await _cache.RemoveAsync($"verify:{model.Email}");
-            return StatusCode(StatusCodes.Status201Created, new { success = true, message = "تم إنشاء الحساب بنجاح!" });
+            // ----------- Generate Email Confirmation Token ------------
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // لازم نعمل encode لأن ال token بيبقى فيه رموز
+            var encodedToken = Uri.EscapeDataString(token);
+
+            // اللينك إلي هستخدمه في ال frontend
+            var confirmationLink = $"{Request.Scheme}://{Request.Host}/api/auth/confirm-email?userId={user.Id}&token={encodedToken}";
+            var path = Path.Combine(_env.ContentRootPath, "EmailTemplates", "EmailConfirmation.html");
+            var html = await System.IO.File.ReadAllTextAsync(path);
+
+            html = html.Replace("{{CONFIRMATION_LINK}}", confirmationLink);
+            // ابعت الإيميل (إنت عندك service جاهزة أو هتكتب واحدة)
+            await _emailService.SendEmailAsync(model.Email,
+                "تأكيد الحساب",
+                html);
+
+            return StatusCode(StatusCodes.Status201Created,
+                new { success = true, message = "تم إنشاء الحساب! برجاء فحص بريدك الإلكتروني لتفعيل الحساب." });
         }
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+                return BadRequest("Invalid email confirmation request.");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound("User not found.");
+
+            var decodedToken = Uri.UnescapeDataString(token);
+
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            if (result.Succeeded)
+                return Ok(new { success = true, message = "تم تفعيل الحساب بنجاح!" });
+
+            return BadRequest(result.Errors);
+        }
+
 
         [HttpPost("register-lawyer")]
         public async Task<IActionResult> RegisterLawyer([FromForm] RegisterLawyerDto dto)
@@ -145,12 +168,12 @@ namespace FinalProject.NET.Controllers
                 lawyer.Documents = new List<DocumentVerification>();
 
             var files = new Dictionary<DocumentType, IFormFile>
-    {
-        { DocumentType.IdFront, dto.IdFront },
-        { DocumentType.IdBack, dto.IdBack },
-        { DocumentType.SelfieWithId, dto.SelfieWithId },
-        { DocumentType.LicensePhoto, dto.LicensePhoto }
-    };
+                {
+                    { DocumentType.IdFront, dto.IdFront },
+                    { DocumentType.IdBack, dto.IdBack },
+                    { DocumentType.SelfieWithId, dto.SelfieWithId },
+                    { DocumentType.LicensePhoto, dto.LicensePhoto }
+                };
 
             foreach (var kv in files)
             {
@@ -191,46 +214,10 @@ namespace FinalProject.NET.Controllers
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        #region Helpers
 
-        private async Task<List<string>> ValidateCommonAsync(RegisterCommonDto model)
-        {
-            var errors = new List<string>();
 
-            // password complexity
-            var passwordPattern = @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$";
-            if (!Regex.IsMatch(model.Password ?? string.Empty, passwordPattern))
-                errors.Add("كلمة المرور يجب أن تحتوي على حرف كبير، حرف صغير، رقم وطولها على الأقل 8 أحرف");
 
-            // email uniqueness
-            var existingUser = await _userManager.FindByEmailAsync(model.Email);
-            if (existingUser != null)
-                errors.Add("البريد الإلكتروني مستخدم مسبقًا");
 
-            // verification code in cache
-            var cacheKey = $"verify:{model.Email}";
-            var json = await _cache.GetStringAsync(cacheKey);
-            if (string.IsNullOrEmpty(json))
-                errors.Add("رمز التحقق غير موجود أو انتهت صلاحيته");
-            else
-            {
-                try
-                {
-                    using var doc = JsonDocument.Parse(json);
-                    var code = doc.RootElement.GetProperty("Code").GetString();
-                    if (code != model.VerificationCode)
-                        errors.Add("رمز التحقق غير صحيح");
-                }
-                catch
-                {
-                    errors.Add("رمز التحقق غير صالح");
-                }
-            }
-
-            return errors;
-        }
-
-        #endregion
 
 
 

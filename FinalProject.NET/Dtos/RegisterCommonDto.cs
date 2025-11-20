@@ -20,7 +20,5 @@ namespace FinalProject.NET.Dtos
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
         public string Password { get; set; }
 
-        [Required(ErrorMessage = "Verification code is required.")]
-        public string VerificationCode { get; set; }
     }
 }
