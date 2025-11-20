@@ -2,6 +2,7 @@
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
 using FinalProject.NET.Models;
+using FinalProject.NET.Services.Cloudinary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ namespace FinalProject.NET.Controllers
         private readonly IEmailService _emailService;
         private readonly IDistributedCache _cache;
         private readonly IWebHostEnvironment _env;
+        private readonly ICloudService _cloudService;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
@@ -26,6 +28,7 @@ namespace FinalProject.NET.Controllers
             IEmailService emailService,
             IDistributedCache cache,
             IWebHostEnvironment env,
+            ICloudService cloudService,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
@@ -33,6 +36,7 @@ namespace FinalProject.NET.Controllers
             _emailService = emailService;
             _cache = cache;
             _env = env;
+            _cloudService = cloudService;
             _logger = logger;
         }
         [HttpGet("specializations")]
@@ -54,8 +58,6 @@ namespace FinalProject.NET.Controllers
         public async Task<IActionResult> RegisterUser([FromForm] RegisterUserDto model)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-
 
             var user = new User
             {
@@ -108,7 +110,6 @@ namespace FinalProject.NET.Controllers
             return BadRequest(result.Errors);
         }
 
-
         [HttpPost("register-lawyer")]
         public async Task<IActionResult> RegisterLawyer([FromForm] RegisterLawyerDto dto)
         {
@@ -120,6 +121,7 @@ namespace FinalProject.NET.Controllers
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = dto.Email,
+                UserName = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 About = dto.About,
                 YearsOfExperience = dto.YearsOfExperience,
@@ -148,65 +150,69 @@ namespace FinalProject.NET.Controllers
                     })
                     .ToList();
             }
-
             // رفع الوثائق
-            await HandleDocuments(lawyer, dto);
+            await HandleDocumentsCloud(lawyer, dto);
+            // ----------- Generate Email Confirmation Token ------------
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(lawyer);
+            var encodedToken = Uri.EscapeDataString(token);
 
-            // حفظ كل التغييرات
+            var confirmationLink =
+                $"{Request.Scheme}://{Request.Host}/api/auth/confirm-email?userId={lawyer.Id}&token={encodedToken}";
+
+            // ----------- Load Email Template -----------
+            var path = Path.Combine(_env.ContentRootPath, "EmailTemplates", "EmailConfirmation.html");
+            var html = await System.IO.File.ReadAllTextAsync(path);
+
+            html = html.Replace("{{CONFIRMATION_LINK}}", confirmationLink);
+
+            await _emailService.SendEmailAsync(dto.Email, "تأكيد الحساب", html);
+
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
-                Message = "Lawyer registered successfully",
+                Message = "Lawyer registered successfully. Verification email sent.",
                 LawyerId = lawyer.Id
             });
         }
 
-        private async Task HandleDocuments(Lawyer lawyer, RegisterLawyerDto dto)
+
+        private async Task HandleDocumentsCloud(Lawyer lawyer, RegisterLawyerDto dto)
         {
             if (lawyer.Documents == null)
                 lawyer.Documents = new List<DocumentVerification>();
 
+            // الملفات اللي هترفع
             var files = new Dictionary<DocumentType, IFormFile>
-                {
-                    { DocumentType.IdFront, dto.IdFront },
-                    { DocumentType.IdBack, dto.IdBack },
-                    { DocumentType.SelfieWithId, dto.SelfieWithId },
-                    { DocumentType.LicensePhoto, dto.LicensePhoto }
-                };
+    {
+        { DocumentType.IdFront, dto.IdFront },
+        { DocumentType.IdBack, dto.IdBack },
+        { DocumentType.SelfieWithId, dto.SelfieWithId },
+        { DocumentType.LicensePhoto, dto.LicensePhoto }
+    };
 
             foreach (var kv in files)
             {
                 var file = kv.Value;
                 if (file != null && file.Length > 0)
                 {
-                    var folderPath = Path.Combine(_env.WebRootPath, "uploads", "lawyers", lawyer.Id.ToString());
-                    if (!Directory.Exists(folderPath))
-                        Directory.CreateDirectory(folderPath);
+                    // رفع الملف على Cloudinary
+                    var uploadedUrl = await _cloudService.UploadAsync(file);
 
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    var filePath = Path.Combine(folderPath, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    // URL مناسب للواجهة
-                    var url = $"/uploads/lawyers/{lawyer.Id}/{fileName}";
-
+                    // حفظ الـ URL في الـ DB
                     lawyer.Documents.Add(new DocumentVerification
                     {
                         Id = Guid.NewGuid(),
                         LawyerId = lawyer.Id,
                         DocumentType = kv.Key,
-                        FileUrl = url,
+                        FileUrl = uploadedUrl,
                         Status = VerificationStatus.Pending,
                         UploadedAt = DateTime.UtcNow
                     });
                 }
             }
         }
+
 
         // مثال على دالة لتشفير الباسورد
         private string HashPassword(string password)
