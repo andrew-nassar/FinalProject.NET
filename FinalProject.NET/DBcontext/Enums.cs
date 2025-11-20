@@ -1,13 +1,5 @@
 ﻿namespace FinalProject.NET.DBcontext
 {
-    public enum DocumentType
-    {
-        IdFront,
-        IdBack,
-        SelfieWithId,
-        LicensePhoto
-    }
-
     public enum VerificationStatus
     {
         Pending,
@@ -26,5 +18,12 @@
         الهجرة_والأجانب = 8,
         مجلس_الدولة = 16,
         تأسيس_الشركات = 32
+    }
+    public enum DocumentType
+    {
+        IdFront,
+        IdBack,
+        SelfieWithId,
+        LicensePhoto
     }
 }

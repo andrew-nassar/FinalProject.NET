@@ -3,19 +3,19 @@
 public class Lawyer : Person
 {
 
-    // ID photos (store file paths or URLs)
-    public ICollection<DocumentVerification> Documents { get; set; }
-    // الربط بالـ Location
-    public string OfficeLocationId { get; set; }      // FK
-    public Location OfficeLocation { get; set; }  // الآن الموقع ككلاس منفصل
+    public Guid OfficeLocationId { get; set; }      
+    public Location OfficeLocation { get; set; }  
     public string PhoneNumber { get; set; }
     public string About { get; set; }
-    // روابط للتخصصات
+    public ICollection<DocumentVerification> Documents { get; set; }
+    
+    public string UID { get; set; }
     public ICollection<LawyerSpecialization> LawyerSpecializations { get; set; }
     public Lawyer()
     {
-        Role = FinalProject.NET.DBcontext.Role.Lawyer; // 👈 تعيين الدور الافتراضي
+        Role = FinalProject.NET.DBcontext.Role.Lawyer; 
     }
     public int YearsOfExperience { get; set; }
+
 }
 

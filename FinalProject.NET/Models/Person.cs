@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FinalProject.NET.Models
 {
-    public class Person : IdentityUser
+    public class Person : IdentityUser<Guid>
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

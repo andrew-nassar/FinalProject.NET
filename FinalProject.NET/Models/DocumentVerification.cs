@@ -5,32 +5,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinalProject.NET.Models
 {
-    [Index(nameof(PersonId), nameof(DocumentType), IsUnique = true)]
+    [Index(nameof(LawyerId), nameof(DocumentType), IsUnique = true)]
 
     public class DocumentVerification
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
-        // نوع الوثيقة: بطاقة أمامية، خلفية، سيلفي، كارنيه...
         public DocumentType DocumentType { get; set; }
-
-        // مسار الصورة أو رابطها
-        public string FilePath { get; set; }
-
-        // حالة التحقق
+        public string FileUrl { get; set; }
         public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
-
-        // ملاحظات من المشرف (لو تم الرفض أو فيه مشكلة)
         public string Notes { get; set; }
 
-        // الربط بالمستخدم أو المحامي
-        public string PersonId { get; set; }  // لو دمجت Person مع IdentityUser
-        [ForeignKey("PersonId")]
-        public Person Person { get; set; }
+        public Guid LawyerId { get; set; }
+        [ForeignKey("LawyerId")]
+        public Lawyer Lawyer { get; set; }
 
-        public string ReviewedById { get; set; }
+        public Guid? ReviewedById { get; set; }
         public Person ReviewedBy { get; set; }
+
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ReviewedAt { get; set; }
 
     }
 }
