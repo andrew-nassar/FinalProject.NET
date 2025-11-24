@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FinalProject.NET.Migrations
 {
     /// <inheritdoc />
-    public partial class Final_Project01 : Migration
+    public partial class Final_project : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -89,9 +89,6 @@ namespace FinalProject.NET.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Discriminator = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
                     OfficeLocationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    About = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    YearsOfExperience = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -211,7 +208,7 @@ namespace FinalProject.NET.Migrations
                     DocumentType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FileUrl = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     LawyerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ReviewedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -232,6 +229,28 @@ namespace FinalProject.NET.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LawyerInfos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    About = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    YearsOfExperience = table.Column<int>(type: "int", nullable: false),
+                    NationalId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Personal_Photo_Url = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LawyerInfos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LawyerInfos_AspNetUsers_Id",
+                        column: x => x.Id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -263,12 +282,12 @@ namespace FinalProject.NET.Migrations
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("00000000-0000-0000-0000-000000000001"), "الجنائي" },
-                    { new Guid("00000000-0000-0000-0000-000000000002"), "المدني" },
-                    { new Guid("00000000-0000-0000-0000-000000000004"), "الأسرة" },
-                    { new Guid("00000000-0000-0000-0000-000000000008"), "الهجرة_والأجانب" },
-                    { new Guid("00000000-0000-0000-0000-000000000016"), "مجلس_الدولة" },
-                    { new Guid("00000000-0000-0000-0000-000000000032"), "تأسيس_الشركات" }
+                    { new Guid("07829526-a345-4cdf-b84f-521687c4eb85"), "تأسيس_الشركات" },
+                    { new Guid("18fb54b9-9b54-4a5c-9af9-f54afd6743d1"), "الهجرة_والأجانب" },
+                    { new Guid("39d67177-efb1-4ff9-b99d-89c67e604101"), "مجلس_الدولة" },
+                    { new Guid("3eac5e6b-fabc-4ce3-9619-2b40c626d337"), "الأسرة" },
+                    { new Guid("a19ee270-4894-41a9-86f6-0efa40342944"), "الجنائي" },
+                    { new Guid("dd2d9cd7-a582-4e28-a4d2-ab9222752141"), "المدني" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -309,13 +328,6 @@ namespace FinalProject.NET.Migrations
                 column: "OfficeLocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_UID",
-                table: "AspNetUsers",
-                column: "UID",
-                unique: true,
-                filter: "[UID] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -345,19 +357,9 @@ namespace FinalProject.NET.Migrations
                 column: "SpecializationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Locations_City",
+                name: "IX_Locations_Country_Government_City",
                 table: "Locations",
-                column: "City");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Locations_Country",
-                table: "Locations",
-                column: "Country");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Locations_Government",
-                table: "Locations",
-                column: "Government");
+                columns: new[] { "Country", "Government", "City" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Specializations_Name",
@@ -386,6 +388,9 @@ namespace FinalProject.NET.Migrations
 
             migrationBuilder.DropTable(
                 name: "DocumentVerifications");
+
+            migrationBuilder.DropTable(
+                name: "LawyerInfos");
 
             migrationBuilder.DropTable(
                 name: "LawyerSpecializations");

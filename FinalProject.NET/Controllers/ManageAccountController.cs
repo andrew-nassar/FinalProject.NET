@@ -26,13 +26,16 @@ namespace FinalProject.NET.Controllers
         {
             var query = _context.Lawyers
                 .Include(l => l.OfficeLocation)
+                .Include(l => l.Documents)
                 .Include(l => l.LawyerSpecializations)
                     .ThenInclude(ls => ls.Specialization)
-                .Where(l => !l.IsDeleted && l.AccountStatus == AccountStatus.Active) // NEW
+                .Where(l => !l.IsDeleted && l.AccountStatus == AccountStatus.Active)
                 .AsQueryable();
-            query = query.Where(l =>
-                l.Documents.All(d => d.Status == VerificationStatus.Approved));
 
+            // --------------------- 0) فقط المحامين اللي كل ملفاتهم Verified ---------------------
+            query = query.Where(l =>
+                l.Documents.Any() &&
+                l.Documents.All(d => d.Status == VerificationStatus.Approved));
 
             // --------------------- 1) Filter by Specializations ---------------------
             if (filter.SpecializationIds != null && filter.SpecializationIds.Any())
@@ -58,9 +61,9 @@ namespace FinalProject.NET.Controllers
                 l.Id,
                 FullName = l.FirstName + " " + l.LastName,
                 l.Email,
-                l.PhoneNumber,
-                l.About,
-                l.YearsOfExperience,
+                PhoneNumber = l.LawyerInfo.PhoneNumber, // التليفون من LawyerInfo
+                About = l.LawyerInfo.About,            // الـ About من LawyerInfo
+                Experience = l.LawyerInfo.YearsOfExperience,
 
                 Location = new
                 {
@@ -72,11 +75,62 @@ namespace FinalProject.NET.Controllers
 
                 Specializations = l.LawyerSpecializations
                     .Select(ls => ls.Specialization.Name)
-                    .ToList(),
-
+                    .ToList()
             }).ToListAsync();
 
             return Ok(lawyers);
+        }
+
+        [HttpGet("lawyer/{id}")]
+        public async Task<IActionResult> GetLawyerById(Guid id)
+        {
+            var lawyer = await _context.Lawyers
+                .Include(l => l.LawyerInfo)
+                .Include(l => l.OfficeLocation)
+                .Include(l => l.LawyerSpecializations)
+                    .ThenInclude(ls => ls.Specialization)
+                .Where(l => !l.IsDeleted && l.AccountStatus == AccountStatus.Active)
+                .Where(l => l.Id == id)
+                .Select(l => new
+                {
+                    l.Id,
+                    FullName = l.FirstName + " " + l.LastName,
+                    l.Email,
+
+                    Info = new
+                    {
+                        l.LawyerInfo.PhoneNumber,
+                        l.LawyerInfo.About,
+                        l.LawyerInfo.YearsOfExperience,
+                        l.LawyerInfo.NationalId,
+                        l.LawyerInfo.Personal_Photo_Url
+                    },
+
+                    Location = new
+                    {
+                        l.OfficeLocation.Country,
+                        l.OfficeLocation.Government,
+                        l.OfficeLocation.City,
+                        l.OfficeLocation.Street
+                    },
+
+                    Documents = l.Documents.Select(d => new
+                    {
+                        d.DocumentType,
+                        d.FileUrl,
+                        d.Status
+                    }),
+
+                    Specializations = l.LawyerSpecializations
+                        .Select(ls => ls.Specialization.Name)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (lawyer == null)
+                return NotFound("Lawyer not found");
+
+            return Ok(lawyer);
         }
 
     }

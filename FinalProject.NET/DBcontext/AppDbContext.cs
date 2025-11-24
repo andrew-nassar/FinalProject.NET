@@ -22,6 +22,12 @@ namespace FinalProject.NET.DBcontext
         {
             base.OnModelCreating(builder);
 
+            // One-to-One: Lawyer <-> LawyerInfo
+            builder.Entity<Lawyer>()
+                .HasOne(l => l.LawyerInfo)
+                .WithOne(li => li.Lawyer)
+                .HasForeignKey<LawyerInfo>(li => li.Id); // <-- Important: dependent FK
+
             // DocumentVerification -> Lawyer
             builder.Entity<DocumentVerification>()
                 .HasOne(d => d.Lawyer)
@@ -102,7 +108,7 @@ namespace FinalProject.NET.DBcontext
                 .Cast<SpecializationType>()
                 .Select(s => new Specialization
                 {
-                    Id = Guid.NewGuid(),  // أو Id = s.GetHashCode()
+                    Id = Guid.ParseExact($"{(int)s:D32}", "N"), // deterministic GUID
                     Name = s.ToString()
                 })
                 .ToList();

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinalProject.NET.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251122134303_Final_Project01")]
-    partial class Final_Project01
+    [Migration("20251124170054_Final_project")]
+    partial class Final_project
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,7 +44,6 @@ namespace FinalProject.NET.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -69,6 +68,34 @@ namespace FinalProject.NET.Migrations
                         .IsUnique();
 
                     b.ToTable("DocumentVerifications");
+                });
+
+            modelBuilder.Entity("FinalProject.NET.Models.LawyerInfo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("About")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NationalId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Personal_Photo_Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LawyerInfos");
                 });
 
             modelBuilder.Entity("FinalProject.NET.Models.LawyerSpecialization", b =>
@@ -113,11 +140,7 @@ namespace FinalProject.NET.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("City");
-
-                    b.HasIndex("Country");
-
-                    b.HasIndex("Government");
+                    b.HasIndex("Country", "Government", "City");
 
                     b.ToTable("Locations");
                 });
@@ -244,32 +267,32 @@ namespace FinalProject.NET.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Id = new Guid("a19ee270-4894-41a9-86f6-0efa40342944"),
                             Name = "الجنائي"
                         },
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            Id = new Guid("dd2d9cd7-a582-4e28-a4d2-ab9222752141"),
                             Name = "المدني"
                         },
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000004"),
+                            Id = new Guid("3eac5e6b-fabc-4ce3-9619-2b40c626d337"),
                             Name = "الأسرة"
                         },
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000008"),
+                            Id = new Guid("18fb54b9-9b54-4a5c-9af9-f54afd6743d1"),
                             Name = "الهجرة_والأجانب"
                         },
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000016"),
+                            Id = new Guid("39d67177-efb1-4ff9-b99d-89c67e604101"),
                             Name = "مجلس_الدولة"
                         },
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000032"),
+                            Id = new Guid("07829526-a345-4cdf-b84f-521687c4eb85"),
                             Name = "تأسيس_الشركات"
                         });
                 });
@@ -416,25 +439,10 @@ namespace FinalProject.NET.Migrations
                 {
                     b.HasBaseType("FinalProject.NET.Models.Person");
 
-                    b.Property<string>("About")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("OfficeLocationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("UID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("YearsOfExperience")
-                        .HasColumnType("int");
-
                     b.HasIndex("OfficeLocationId");
-
-                    b.HasIndex("UID")
-                        .IsUnique()
-                        .HasFilter("[UID] IS NOT NULL");
 
                     b.HasDiscriminator().HasValue("Lawyer");
                 });
@@ -455,6 +463,17 @@ namespace FinalProject.NET.Migrations
                     b.Navigation("Lawyer");
 
                     b.Navigation("ReviewedBy");
+                });
+
+            modelBuilder.Entity("FinalProject.NET.Models.LawyerInfo", b =>
+                {
+                    b.HasOne("Lawyer", "Lawyer")
+                        .WithOne("LawyerInfo")
+                        .HasForeignKey("FinalProject.NET.Models.LawyerInfo", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lawyer");
                 });
 
             modelBuilder.Entity("FinalProject.NET.Models.LawyerSpecialization", b =>
@@ -551,6 +570,9 @@ namespace FinalProject.NET.Migrations
             modelBuilder.Entity("Lawyer", b =>
                 {
                     b.Navigation("Documents");
+
+                    b.Navigation("LawyerInfo")
+                        .IsRequired();
 
                     b.Navigation("LawyerSpecializations");
                 });

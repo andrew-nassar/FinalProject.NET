@@ -2,7 +2,9 @@
 using Booking.API.Models;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Models;
+using FinalProject.NET.Repositories.Implementations;
 using FinalProject.NET.Services.Cloudinary;
+using FinalProject.NET.Services.Register;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -34,7 +36,13 @@ namespace FinalProject.NET
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddSingleton<ICloudService, CloudinaryService>();
             // end email_service
+            // Repositories
+            builder.Services.AddScoped<ILawyerRepository, LawyerRepository>();
 
+
+            // Services
+            builder.Services.AddScoped<ILawyerService, LawyerService>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
             // Add services to the container.
 
             builder.Services.AddControllers();
