@@ -20,7 +20,7 @@ namespace FinalProject.NET.Models
         public Lawyer Lawyer { get; set; }
 
         public Guid? ReviewedById { get; set; }
-        public Person ReviewedBy { get; set; }
+        public Person? ReviewedBy { get; set; }
 
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }

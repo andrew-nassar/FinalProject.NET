@@ -119,7 +119,6 @@ namespace FinalProject.NET.Controllers
                 return BadRequest(validation);
 
             using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 var location = await CreateLocationAsync(dto);
@@ -131,9 +130,12 @@ namespace FinalProject.NET.Controllers
                     return BadRequest("Failed to create user.");
                 }
 
+                // Create LawyerInfo
+                await CreateLawyerInfoAsync(dto, lawyer.Id);
+
                 await AssignSpecializationsAsync(dto, lawyer.Id);
 
-                var uploadedUrls = await HandleDocumentUploadsAsync(dto, lawyer.Id);
+                await HandleDocumentUploadsAsync(dto, lawyer.Id);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -150,9 +152,24 @@ namespace FinalProject.NET.Controllers
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "RegisterLawyer failed");
-
                 return StatusCode(500, "An error occurred while registering the lawyer");
             }
+        }
+
+        private async Task CreateLawyerInfoAsync(RegisterLawyerDto dto, Guid lawyerId)
+        {
+            var info = new LawyerInfo
+            {
+                Id = lawyerId, // SAME PK == FK
+                PhoneNumber = dto.PhoneNumber,
+                About = dto.About,
+                YearsOfExperience = dto.YearsOfExperience,
+                NationalId = "",
+                Personal_Photo_Url = null // ترفعها بعدين
+            };
+
+            _context.Add(info);
+            await _context.SaveChangesAsync();
         }
 
         private string ValidateInput(RegisterLawyerDto dto)
@@ -189,9 +206,6 @@ namespace FinalProject.NET.Controllers
                 LastName = dto.LastName,
                 Email = dto.Email,
                 UserName = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                About = dto.About,
-                YearsOfExperience = dto.YearsOfExperience,
                 OfficeLocationId = locationId
             };
 
@@ -202,11 +216,7 @@ namespace FinalProject.NET.Controllers
                 return null;
             }
 
-            // مهم: نفصل التراكينج
-            _context.Entry(lawyer).State = EntityState.Detached;
-
-            return await _context.Lawyers
-                .FirstOrDefaultAsync(l => l.Id == lawyer.Id);
+            return lawyer;
         }
 
         private async Task AssignSpecializationsAsync(RegisterLawyerDto dto, Guid lawyerId)
@@ -240,10 +250,8 @@ namespace FinalProject.NET.Controllers
             }
         }
 
-        private async Task<List<string>> HandleDocumentUploadsAsync(RegisterLawyerDto dto, Guid lawyerId)
+        private async Task HandleDocumentUploadsAsync(RegisterLawyerDto dto, Guid lawyerId)
         {
-            var uploadedUrls = new List<string>();
-
             var files = new Dictionary<DocumentType, IFormFile>
     {
         { DocumentType.IdFront, dto.IdFront },
@@ -252,30 +260,25 @@ namespace FinalProject.NET.Controllers
         { DocumentType.LicensePhoto, dto.LicensePhoto }
     };
 
-            foreach (var x in files)
+            foreach (var item in files)
             {
-                if (x.Value == null || x.Value.Length == 0)
+                var file = item.Value;
+                if (file == null || file.Length == 0)
                     continue;
 
-                var fileUrl = await _cloudService.UploadAsync(x.Value);
-                if (string.IsNullOrEmpty(fileUrl))
-                    continue;
-
-                uploadedUrls.Add(fileUrl);
+                var fileUrl = await _cloudService.UploadAsync(file);
 
                 _context.DocumentVerifications.Add(new DocumentVerification
                 {
                     Id = Guid.NewGuid(),
                     LawyerId = lawyerId,
-                    DocumentType = x.Key,
+                    DocumentType = item.Key,
                     FileUrl = fileUrl,
                     Status = VerificationStatus.Pending,
                     UploadedAt = DateTime.UtcNow,
                     Notes = ""
                 });
             }
-
-            return uploadedUrls;
         }
 
         private async Task SendConfirmationEmailAsync(string email, Guid lawyerId)

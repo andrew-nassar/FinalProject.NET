@@ -16,6 +16,7 @@ namespace FinalProject.NET.DBcontext
         public DbSet<User> Users { get; set; }
         public DbSet<Specialization> Specializations { get; set; }
         public DbSet<LawyerSpecialization> LawyerSpecializations { get; set; }
+        public DbSet<LawyerInfo> LawyerInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -52,10 +53,6 @@ namespace FinalProject.NET.DBcontext
                 .HasOne(ls => ls.Specialization)
                 .WithMany(s => s.LawyerSpecializations)
                 .HasForeignKey(ls => ls.SpecializationId);
-
-            builder.Entity<Lawyer>()
-                .HasIndex(l => l.UID)
-                .IsUnique();
 
             builder.Entity<DocumentVerification>()
                 .HasOne(d => d.ReviewedBy)
@@ -105,7 +102,7 @@ namespace FinalProject.NET.DBcontext
                 .Cast<SpecializationType>()
                 .Select(s => new Specialization
                 {
-                    Id = Guid.ParseExact($"{(int)s:D32}", "N"),
+                    Id = Guid.NewGuid(),  // أو Id = s.GetHashCode()
                     Name = s.ToString()
                 })
                 .ToList();

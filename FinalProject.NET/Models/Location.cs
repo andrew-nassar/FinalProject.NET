@@ -2,9 +2,7 @@
 
 namespace FinalProject.NET.Models
 {
-    [Index(nameof(Country))]
-    [Index(nameof(Government))]
-    [Index(nameof(City))]
+    [Index(nameof(Country), nameof(Government), nameof(City))]
     public class Location
     {
         public Guid Id { get; set; }
