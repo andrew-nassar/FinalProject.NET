@@ -19,30 +19,27 @@ namespace FinalProject.NET.DBcontext
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-
             base.OnModelCreating(builder);
 
-            // 🔗 DocumentVerification ↔ Person
+            // DocumentVerification -> Lawyer
             builder.Entity<DocumentVerification>()
                 .HasOne(d => d.Lawyer)
                 .WithMany(l => l.Documents)
                 .HasForeignKey(d => d.LawyerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-
-            // ✅ منع تكرار نوع الوثيقة لنفس الشخص
             builder.Entity<DocumentVerification>()
                 .HasIndex(d => new { d.LawyerId, d.DocumentType })
                 .IsUnique();
 
-            // 🔗 Lawyer ↔ Location
+            // Lawyer -> Location (ONE-to-MANY)
             builder.Entity<Lawyer>()
                 .HasOne(l => l.OfficeLocation)
-                .WithMany(loc => loc.Lawyers)
+                .WithMany(loc => loc.Lawyers)    // <-- use WithMany(...) because Location has ICollection<Lawyer>
                 .HasForeignKey(l => l.OfficeLocationId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // 🔗 LawyerSpecialization ↔ Lawyer & Specialization
+            // LawyerSpecialization composite key & relations
             builder.Entity<LawyerSpecialization>()
                 .HasKey(ls => new { ls.LawyerId, ls.SpecializationId });
 
@@ -66,7 +63,7 @@ namespace FinalProject.NET.DBcontext
                 .HasForeignKey(d => d.ReviewedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // DocumentVerification enums
+            // Enum conversions
             builder.Entity<DocumentVerification>()
                 .Property(d => d.DocumentType)
                 .HasConversion<string>();
@@ -75,7 +72,6 @@ namespace FinalProject.NET.DBcontext
                 .Property(d => d.Status)
                 .HasConversion<string>();
 
-            // Person enums
             builder.Entity<Person>()
                 .Property(p => p.Role)
                 .HasConversion<string>();
@@ -84,8 +80,7 @@ namespace FinalProject.NET.DBcontext
                 .Property(p => p.AccountStatus)
                 .HasConversion<string>();
 
-
-            // 🧾 خصائص نصية: تحديد الطول
+            // Text constraints
             builder.Entity<Person>()
                 .Property(p => p.FirstName)
                 .HasMaxLength(100)
@@ -104,18 +99,20 @@ namespace FinalProject.NET.DBcontext
             builder.Entity<DocumentVerification>()
                 .Property(d => d.Notes)
                 .HasMaxLength(500);
-            // ✅ Seed Specializations from SpecializationType enum with deterministic GUIDs
+
+            // Seed specializations (keep your seed logic)
             var specializations = Enum.GetValues(typeof(SpecializationType))
                 .Cast<SpecializationType>()
                 .Select(s => new Specialization
                 {
-                    Id = Guid.ParseExact($"{(int)s:D32}", "N"), // deterministic GUID
+                    Id = Guid.ParseExact($"{(int)s:D32}", "N"),
                     Name = s.ToString()
                 })
-            .ToList();
+                .ToList();
 
             builder.Entity<Specialization>().HasData(specializations);
         }
+
 
 
 

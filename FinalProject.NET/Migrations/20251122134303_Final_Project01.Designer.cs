@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinalProject.NET.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251119222115_Final_projet")]
-    partial class Final_projet
+    [Migration("20251122134303_Final_Project01")]
+    partial class Final_Project01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,6 +83,9 @@ namespace FinalProject.NET.Migrations
 
                     b.HasIndex("SpecializationId");
 
+                    b.HasIndex("LawyerId", "SpecializationId")
+                        .IsUnique();
+
                     b.ToTable("LawyerSpecializations");
                 });
 
@@ -94,21 +97,27 @@ namespace FinalProject.NET.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Government")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("City");
+
+                    b.HasIndex("Country");
+
+                    b.HasIndex("Government");
 
                     b.ToTable("Locations");
                 });
@@ -231,6 +240,38 @@ namespace FinalProject.NET.Migrations
                         .IsUnique();
 
                     b.ToTable("Specializations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "الجنائي"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+                            Name = "المدني"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000004"),
+                            Name = "الأسرة"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000008"),
+                            Name = "الهجرة_والأجانب"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000016"),
+                            Name = "مجلس_الدولة"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000032"),
+                            Name = "تأسيس_الشركات"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -491,7 +532,7 @@ namespace FinalProject.NET.Migrations
                     b.HasOne("FinalProject.NET.Models.Location", "OfficeLocation")
                         .WithMany("Lawyers")
                         .HasForeignKey("OfficeLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("OfficeLocation");

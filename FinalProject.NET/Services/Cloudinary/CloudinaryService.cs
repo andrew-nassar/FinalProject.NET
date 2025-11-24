@@ -27,13 +27,18 @@ namespace FinalProject.NET.Services.Cloudinary
             var uploadParams = new ImageUploadParams()
             {
                 File = new FileDescription(file.FileName, stream),
-                Folder = "lawyers", // Optional: folder in your Cloudinary account
+                Folder = "lawyers",
                 Transformation = new Transformation().Quality("auto").FetchFormat("auto")
             };
 
             var result = await _cloudinary.UploadAsync(uploadParams);
 
+            // تحقق من نجاح الرفع
+            if (result == null || result.StatusCode != System.Net.HttpStatusCode.OK || result.SecureUrl == null)
+                throw new Exception($"Cloudinary upload failed: {result?.Error?.Message ?? "Unknown error"}");
+
             return result.SecureUrl.ToString();
         }
+
     }
 }

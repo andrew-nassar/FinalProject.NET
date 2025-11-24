@@ -12,6 +12,7 @@ namespace FinalProject.NET.Models
         public ICollection<LawyerSpecialization> LawyerSpecializations { get; set; }
     }
 
+    [Index(nameof(LawyerId), nameof(SpecializationId), IsUnique = true)]
     public class LawyerSpecialization
     {
         public Guid LawyerId { get; set; }

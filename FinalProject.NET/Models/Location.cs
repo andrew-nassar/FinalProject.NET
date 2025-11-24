@@ -1,15 +1,20 @@
-﻿namespace FinalProject.NET.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace FinalProject.NET.Models
 {
+    [Index(nameof(Country))]
+    [Index(nameof(Government))]
+    [Index(nameof(City))]
     public class Location
     {
-        public Guid Id { get; set; } // ID تلقائي
-        public string Country { get; set; }       // الدولة
-        public string Government { get; set; }   // المحافظة
-        public string City { get; set; }         // المدينة
-        public string Street { get; set; }       // الشارع
+        public Guid Id { get; set; }
+        public string Country { get; set; }
+        public string Government { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
+        public ICollection<Lawyer> Lawyers { get; set; } = new List<Lawyer>();
 
-        // Navigation property: كل المحامين اللي في المكان ده
-        public ICollection<Lawyer> Lawyers { get; set; }
     }
+
 
 }

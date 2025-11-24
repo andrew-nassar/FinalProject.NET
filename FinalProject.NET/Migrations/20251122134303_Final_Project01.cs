@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace FinalProject.NET.Migrations
 {
     /// <inheritdoc />
-    public partial class Final_projet : Migration
+    public partial class Final_Project01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,9 +32,9 @@ namespace FinalProject.NET.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Government = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Government = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    City = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Street = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -113,7 +115,7 @@ namespace FinalProject.NET.Migrations
                         column: x => x.OfficeLocationId,
                         principalTable: "Locations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -256,6 +258,19 @@ namespace FinalProject.NET.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Specializations",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { new Guid("00000000-0000-0000-0000-000000000001"), "الجنائي" },
+                    { new Guid("00000000-0000-0000-0000-000000000002"), "المدني" },
+                    { new Guid("00000000-0000-0000-0000-000000000004"), "الأسرة" },
+                    { new Guid("00000000-0000-0000-0000-000000000008"), "الهجرة_والأجانب" },
+                    { new Guid("00000000-0000-0000-0000-000000000016"), "مجلس_الدولة" },
+                    { new Guid("00000000-0000-0000-0000-000000000032"), "تأسيس_الشركات" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -319,9 +334,30 @@ namespace FinalProject.NET.Migrations
                 column: "ReviewedById");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LawyerSpecializations_LawyerId_SpecializationId",
+                table: "LawyerSpecializations",
+                columns: new[] { "LawyerId", "SpecializationId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LawyerSpecializations_SpecializationId",
                 table: "LawyerSpecializations",
                 column: "SpecializationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Locations_City",
+                table: "Locations",
+                column: "City");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Locations_Country",
+                table: "Locations",
+                column: "Country");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Locations_Government",
+                table: "Locations",
+                column: "Government");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Specializations_Name",

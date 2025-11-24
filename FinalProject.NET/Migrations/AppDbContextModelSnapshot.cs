@@ -80,6 +80,9 @@ namespace FinalProject.NET.Migrations
 
                     b.HasIndex("SpecializationId");
 
+                    b.HasIndex("LawyerId", "SpecializationId")
+                        .IsUnique();
+
                     b.ToTable("LawyerSpecializations");
                 });
 
@@ -91,21 +94,27 @@ namespace FinalProject.NET.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Government")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("City");
+
+                    b.HasIndex("Country");
+
+                    b.HasIndex("Government");
 
                     b.ToTable("Locations");
                 });
@@ -520,7 +529,7 @@ namespace FinalProject.NET.Migrations
                     b.HasOne("FinalProject.NET.Models.Location", "OfficeLocation")
                         .WithMany("Lawyers")
                         .HasForeignKey("OfficeLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("OfficeLocation");

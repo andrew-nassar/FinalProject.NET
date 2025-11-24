@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 namespace FinalProject.NET.Models
 {
     [Index(nameof(LawyerId), nameof(DocumentType), IsUnique = true)]
-
     public class DocumentVerification
     {
         public Guid Id { get; set; }
@@ -14,7 +13,7 @@ namespace FinalProject.NET.Models
         public DocumentType DocumentType { get; set; }
         public string FileUrl { get; set; }
         public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         public Guid LawyerId { get; set; }
         [ForeignKey("LawyerId")]
