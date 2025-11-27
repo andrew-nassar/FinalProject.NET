@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinalProject.NET.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251124170054_Final_project")]
+    [Migration("20251124170453_Final_project")]
     partial class Final_project
     {
         /// <inheritdoc />
@@ -267,32 +267,32 @@ namespace FinalProject.NET.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a19ee270-4894-41a9-86f6-0efa40342944"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Name = "الجنائي"
                         },
                         new
                         {
-                            Id = new Guid("dd2d9cd7-a582-4e28-a4d2-ab9222752141"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000002"),
                             Name = "المدني"
                         },
                         new
                         {
-                            Id = new Guid("3eac5e6b-fabc-4ce3-9619-2b40c626d337"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000004"),
                             Name = "الأسرة"
                         },
                         new
                         {
-                            Id = new Guid("18fb54b9-9b54-4a5c-9af9-f54afd6743d1"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000008"),
                             Name = "الهجرة_والأجانب"
                         },
                         new
                         {
-                            Id = new Guid("39d67177-efb1-4ff9-b99d-89c67e604101"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000016"),
                             Name = "مجلس_الدولة"
                         },
                         new
                         {
-                            Id = new Guid("07829526-a345-4cdf-b84f-521687c4eb85"),
+                            Id = new Guid("00000000-0000-0000-0000-000000000032"),
                             Name = "تأسيس_الشركات"
                         });
                 });

@@ -1,12 +1,16 @@
 ﻿
+using System.Text;
 using Booking.API.Models;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Models;
 using FinalProject.NET.Repositories.Implementations;
 using FinalProject.NET.Services.Cloudinary;
+using FinalProject.NET.Services.Middleware;
 using FinalProject.NET.Services.Register;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace FinalProject.NET
@@ -43,6 +47,34 @@ namespace FinalProject.NET
             // Services
             builder.Services.AddScoped<ILawyerService, LawyerService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+
+            // Services for JWT (❁´◡`❁) 
+            builder.Services.AddSingleton<JwtTokenService>(); // token generator
+            var jwtKey = builder.Configuration["Jwt:Key"];
+            var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+            var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtIssuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtAudience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -98,9 +130,10 @@ namespace FinalProject.NET
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseJwtAuth();
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();  // must come BEFORE UseAuthorization
             app.UseAuthorization();
 
 
