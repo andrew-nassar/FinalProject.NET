@@ -3,6 +3,7 @@ using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
 using FinalProject.NET.Models;
 using FinalProject.NET.Services.Cloudinary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -102,7 +103,6 @@ namespace FinalProject.NET.Controllers
                         l.LawyerInfo.PhoneNumber,
                         l.LawyerInfo.About,
                         l.LawyerInfo.YearsOfExperience,
-                        l.LawyerInfo.NationalId,
                         l.LawyerInfo.Personal_Photo_Url
                     },
 
@@ -131,6 +131,51 @@ namespace FinalProject.NET.Controllers
                 return NotFound("Lawyer not found");
 
             return Ok(lawyer);
+        }
+
+        [HttpGet("lawyers-for-verification")]
+        [Authorize(Roles = "Admin,Activator")]
+        public async Task<IActionResult> GetLawyersForVerification()
+        {
+            var lawyers = await _context.Lawyers
+                .Include(l => l.Documents)  // فقط المستندات
+                .Where(l => !l.IsDeleted && l.AccountStatus == AccountStatus.Pending) // المحامين غير المفعّلين
+                .Select(l => new
+                {
+                    l.Id,
+                    FullName = l.FirstName + " " + l.LastName,
+                    Documents = l.Documents.Select(d => new
+                    {
+                        d.Id,
+                        d.DocumentType,
+                        d.Status
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(lawyers);
+        }
+
+        [HttpPatch("update-status")]
+        [Authorize(Roles = "Admin,Activator")]
+        public async Task<IActionResult> UpdateLawyerStatus([FromBody] LawyerStatusUpdateDto dto)
+        {
+            var lawyer = await _context.Lawyers
+                .Include(l => l.Documents)
+                .FirstOrDefaultAsync(l => l.Id == dto.LawyerId);
+
+            if (lawyer == null)
+                return NotFound("Lawyer not found");
+
+            // تغيير الحالة فقط
+            lawyer.AccountStatus = dto.Status;
+
+            // UID يمكن تغييره فقط إذا كان Admin
+            if (User.IsInRole("Admin") && !string.IsNullOrEmpty(dto.UID))
+                lawyer.NationalId = dto.UID;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { lawyer.Id, lawyer.AccountStatus, lawyer.NationalId });
         }
 
     }

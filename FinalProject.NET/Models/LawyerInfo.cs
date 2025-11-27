@@ -8,7 +8,6 @@
         public string PhoneNumber { get; set; }
         public string About { get; set; }
         public int YearsOfExperience { get; set; }
-        public string NationalId { get; set; }
 
         public string? Personal_Photo_Url { get; set; }
     }

@@ -62,7 +62,6 @@ namespace FinalProject.NET.Repositories.Implementations
                 PhoneNumber = dto.PhoneNumber,
                 About = dto.About,
                 YearsOfExperience = dto.YearsOfExperience,
-                NationalId = ""
             };
 
 

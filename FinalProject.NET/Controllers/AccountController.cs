@@ -3,6 +3,7 @@ using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
 using FinalProject.NET.Models;
 using FinalProject.NET.Services.Cloudinary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -41,6 +42,7 @@ namespace FinalProject.NET.Controllers
             _logger = logger;
         }
         [HttpGet("specializations")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetSpecializations()
         {
             var data = await _context.Specializations
@@ -164,7 +166,6 @@ namespace FinalProject.NET.Controllers
                 PhoneNumber = dto.PhoneNumber,
                 About = dto.About,
                 YearsOfExperience = dto.YearsOfExperience,
-                NationalId = "",
                 Personal_Photo_Url = null // ترفعها بعدين
             };
 

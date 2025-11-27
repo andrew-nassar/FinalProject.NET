@@ -18,6 +18,17 @@ namespace FinalProject.NET.Services.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+
+
+            var path = context.Request.Path.Value;
+
+            // استثناء بعض المسارات من التحقق
+            var allowedPaths = new[] { "/api/auth/Account/specializations", "/api/register-user", "/api/auth/Account/register-user", "/api/auth/Account/confirm-email", "/api/auth/Account/register-lawyer" };
+            if (allowedPaths.Any(p => path!.StartsWith(p)))
+            {
+                await _next(context);
+                return;
+            }
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)

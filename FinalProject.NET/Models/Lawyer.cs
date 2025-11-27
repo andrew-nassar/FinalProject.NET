@@ -1,11 +1,12 @@
 ﻿using FinalProject.NET.Models;
 using Microsoft.EntityFrameworkCore;
 
-[Index(nameof(OfficeLocationId))]
+[Index(nameof(OfficeLocationId)), Index(nameof(NationalId), IsUnique = true)]
 public class Lawyer : Person
 {
     public Guid OfficeLocationId { get; set; }
     public Location OfficeLocation { get; set; }
+    public string? NationalId { get; set; }
 
 
     public ICollection<DocumentVerification> Documents { get; set; } = new List<DocumentVerification>();
