@@ -1,7 +1,12 @@
-﻿namespace FinalProject.NET.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace FinalProject.NET.Models
 {
     public class LawyerInfo
     {
+
+        [Key, ForeignKey("Lawyer")]
         public Guid Id { get; set; }       // Primary Key = LawyerId بالظبط
         // Navigation Property
         public Lawyer Lawyer { get; set; }

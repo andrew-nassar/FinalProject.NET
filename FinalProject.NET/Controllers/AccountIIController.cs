@@ -7,6 +7,7 @@ using FinalProject.NET.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinalProject.NET.Controllers
 {
@@ -20,7 +21,6 @@ namespace FinalProject.NET.Controllers
         {
             _accountService = accountService;
         }
-
         [HttpPost("register-user")]
         public async Task<IActionResult> RegisterUser([FromForm] RegisterUserDto model)
             => ConvertToHttp(await _accountService.RegisterUserAsync(model));

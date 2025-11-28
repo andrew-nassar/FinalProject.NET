@@ -79,10 +79,6 @@ namespace FinalProject.NET.DBcontext
                 .Property(p => p.Role)
                 .HasConversion<string>();
 
-            builder.Entity<Person>()
-                .Property(p => p.AccountStatus)
-                .HasConversion<string>();
-
             // Text constraints
             builder.Entity<Person>()
                 .Property(p => p.FirstName)

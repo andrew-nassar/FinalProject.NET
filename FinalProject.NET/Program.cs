@@ -4,7 +4,9 @@ using Booking.API.Models;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Models;
 using FinalProject.NET.Repositories.Implementations;
+using FinalProject.NET.Services;
 using FinalProject.NET.Services.Cloudinary;
+using FinalProject.NET.Services.Email;
 using FinalProject.NET.Services.Middleware;
 using FinalProject.NET.Services.Register;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,13 +49,16 @@ namespace FinalProject.NET
             // Services
             builder.Services.AddScoped<ILawyerService, LawyerService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
 
             // Services for JWT (❁´◡`❁) 
             builder.Services.AddSingleton<JwtTokenService>(); // token generator
             var jwtKey = builder.Configuration["Jwt:Key"];
             var jwtIssuer = builder.Configuration["Jwt:Issuer"];
             var jwtAudience = builder.Configuration["Jwt:Audience"];
-
+            #region JWT 
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -75,6 +80,7 @@ namespace FinalProject.NET
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            #endregion
             // Add services to the container.
 
             builder.Services.AddControllers();

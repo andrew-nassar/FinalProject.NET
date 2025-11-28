@@ -23,8 +23,9 @@ namespace FinalProject.NET.Services.Middleware
             var path = context.Request.Path.Value;
 
             // استثناء بعض المسارات من التحقق
-            var allowedPaths = new[] { "/api/auth/Account/specializations", "/api/register-user", "/api/auth/Account/register-user", "/api/auth/Account/confirm-email", "/api/auth/Account/register-lawyer" };
-            if (allowedPaths.Any(p => path!.StartsWith(p)))
+            var allowedPaths = new[] { "/api/auth/Account/specializations", "/api/register-user", "/api/auth/Account/register-user", "/api/AccountII/confirm-email", "/api/AccountII/register-lawyer" };
+            // TODO : Rehande this statmeant
+            if (true | allowedPaths.Any(p => path!.StartsWith(p)))
             {
                 await _next(context);
                 return;

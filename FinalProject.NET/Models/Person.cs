@@ -11,7 +11,6 @@ namespace FinalProject.NET.Models
         public Role Role { get; set; }
         // statuses
         public bool IsDeleted { get; set; } = false;
-        public AccountStatus AccountStatus { get; set; } = AccountStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
