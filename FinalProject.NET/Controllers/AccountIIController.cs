@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using FinalProject.NET.Dtos.Auth;
 
 namespace FinalProject.NET.Controllers
 {
@@ -35,5 +36,24 @@ namespace FinalProject.NET.Controllers
 
         private IActionResult ConvertToHttp(ServiceResponse response)
             => response.Success ? Ok(response) : BadRequest(response);
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var res = await _accountService.SendPasswordResetAsync(dto);
+            if (res.Success) return Ok(res);
+            return BadRequest(res);
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var res = await _accountService.ResetPasswordAsync(dto);
+            if (res.Success) return Ok(res);
+            return BadRequest(res);
+        }
+        [HttpPost("send-confirm-email")]
+        public async Task<IActionResult> SendComfirmEmail(string email)
+            => ConvertToHttp(await _accountService.SendEmailConfirmation(email));
     }
 }

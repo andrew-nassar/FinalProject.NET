@@ -55,6 +55,26 @@ namespace FinalProject.NET.Services.Email
         }
 
         #endregion
+        #region Password Reset
+
+        public async Task SendPasswordResetAsync(string email, string resetLink)
+        {
+            var path = Path.Combine(_env.ContentRootPath, "EmailTemplates", "PasswordReset.html");
+
+            if (!File.Exists(path))
+                return;
+
+            var html = await File.ReadAllTextAsync(path);
+            html = html.Replace("{{RESET_PASSWORD_LINK}}", resetLink);
+
+            await _emailService.SendEmailAsync(
+                email,
+                "Reset your password",
+                html
+            );
+        }
+
+        #endregion
 
         #region Helpers
 

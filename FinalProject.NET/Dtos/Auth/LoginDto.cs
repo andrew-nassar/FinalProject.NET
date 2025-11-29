@@ -1,4 +1,4 @@
-﻿namespace FinalProject.NET.Dtos
+﻿namespace FinalProject.NET.Dtos.Auth
 {
     public class LoginDto
     {

@@ -1,10 +1,13 @@
-﻿using Booking.API.Models;
+﻿using System.Text;
+using Booking.API.Models;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
+using FinalProject.NET.Dtos.Auth;
 using FinalProject.NET.Models;
 using FinalProject.NET.Services.Email;
 using FinalProject.NET.Services.Middleware;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinalProject.NET.Services.Register
@@ -108,6 +111,93 @@ namespace FinalProject.NET.Services.Register
                 ? ServiceResponse.Ok("Email confirmed")
                 : ServiceResponse.Fail("Invalid token or failed");
         }
+
+        // inside AccountService class
+        public async Task<ServiceResponse> SendEmailConfirmation(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return ServiceResponse.Fail("Email is required");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return ServiceResponse.Fail("User not found");
+
+            if (user.EmailConfirmed)
+                return ServiceResponse.Fail("Email already confirmed");
+
+            // Send confirmation
+            await _emailSender.SendEmailConfirmationAsync(user);
+
+            return ServiceResponse.Ok("Confirmation email sent");
+        }
+
+        public async Task<ServiceResponse> SendPasswordResetAsync(ForgotPasswordDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return ServiceResponse.Fail("Email is required");
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+
+            // Important: Don't reveal whether the email exists
+            if (user == null)
+                return ServiceResponse.Ok("If an account with that email exists, a reset link has been sent.");
+
+            // Generate reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Encode token as Base64Url
+            var tokenBytes = Encoding.UTF8.GetBytes(token);
+            var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
+
+            // Build front-end reset URL
+            var frontendResetUrl = "https://your-frontend.com/reset-password";
+
+            var resetLink =
+                $"{frontendResetUrl}?userId={Uri.EscapeDataString(user.Id.ToString())}&token={Uri.EscapeDataString(encodedToken)}";
+
+            // Use email service
+            await _emailSender.SendPasswordResetAsync(user.Email, resetLink);
+
+            return ServiceResponse.Ok("If an account with that email exists, a reset link has been sent.");
+        }
+
+
+        public async Task<ServiceResponse> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UserId) ||
+                string.IsNullOrWhiteSpace(dto.Token) ||
+                string.IsNullOrWhiteSpace(dto.NewPassword))
+            {
+                return ServiceResponse.Fail("Invalid request");
+            }
+
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+
+            if (user == null)
+                return ServiceResponse.Fail("Invalid token or user");
+
+            try
+            {
+                // Decode the token (Base64Url)
+                var tokenBytes = WebEncoders.Base64UrlDecode(dto.Token);
+                var decodedToken = Encoding.UTF8.GetString(tokenBytes);
+
+                // Reset the password
+                var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
+
+                if (!result.Succeeded)
+                    return ServiceResponse.Fail(string.Join("; ", result.Errors.Select(e => e.Description)));
+
+                return ServiceResponse.Ok("Password has been reset successfully.");
+            }
+            catch
+            {
+                return ServiceResponse.Fail("Invalid token format");
+            }
+        }
+
+
+
     }
 
 }

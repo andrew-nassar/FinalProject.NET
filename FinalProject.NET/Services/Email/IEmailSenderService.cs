@@ -6,5 +6,6 @@ namespace FinalProject.NET.Services.Email
     {
         Task SendEmailConfirmationAsync(Person user);
         Task SendPendingReviewMessage(Person user);
+        Task SendPasswordResetAsync(string email, string resetLink);
     }
 }

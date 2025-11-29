@@ -9,8 +9,6 @@ public class Lawyer : Person
     public Location OfficeLocation { get; set; }
     public string? NationalId { get; set; }
 
-    // ملاحظات عامة على المستندات
-    public string? DocumentsNotes { get; set; }
     public ICollection<DocumentVerification> Documents { get; set; } = new List<DocumentVerification>();
 
     public ICollection<LawyerSpecialization> LawyerSpecializations { get; set; } = new List<LawyerSpecialization>();
