@@ -15,14 +15,9 @@ namespace FinalProject.NET.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ManageAccountController : ControllerBase
+    public class ManageAccountController(ILawyerService lawyerService) : ControllerBase
     {
-        private readonly ILawyerService _lawyerService;
-
-        public ManageAccountController(ILawyerService lawyerService)
-        {
-            _lawyerService = lawyerService;
-        }
+        private readonly ILawyerService _lawyerService = lawyerService;
 
         [HttpGet("lawyers")]
         public async Task<IActionResult> GetLawyers([FromQuery] LawyerFilterDto filter)

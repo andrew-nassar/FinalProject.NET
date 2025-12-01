@@ -195,9 +195,6 @@ namespace FinalProject.NET.Services.Register
                 return ServiceResponse.Fail("Invalid token format");
             }
         }
-
-
-
     }
 
 }
