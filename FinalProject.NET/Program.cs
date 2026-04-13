@@ -1,14 +1,16 @@
 ﻿
 using System.Text;
 using Booking.API.Models;
+using FinalProject.NET.Application.Interfaces;
 using FinalProject.NET.DBcontext;
-using FinalProject.NET.Models;
-using FinalProject.NET.Repositories.Implementations;
-using FinalProject.NET.Services;
+using FinalProject.NET.Infrastructure.Data;
+using FinalProject.NET.Infrastructure.Data.Entities;
+using FinalProject.NET.Infrastructure.Repositories;
 using FinalProject.NET.Services.Cloudinary;
 using FinalProject.NET.Services.Email;
-using FinalProject.NET.Services.Middleware;
 using FinalProject.NET.Services.Register;
+using FinalProject.NET.Shared.Middleware;
+using FinalProject.NET.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +53,7 @@ namespace FinalProject.NET
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
             // Services for JWT (❁´◡`❁) 
             builder.Services.AddSingleton<JwtTokenService>(); // token generator

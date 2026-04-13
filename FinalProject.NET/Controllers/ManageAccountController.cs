@@ -1,9 +1,8 @@
 ﻿using Booking.API.Models;
+using FinalProject.NET.Application.Interfaces;
 using FinalProject.NET.DBcontext;
 using FinalProject.NET.Dtos;
-using FinalProject.NET.Models;
 using FinalProject.NET.Services.Cloudinary;
-using FinalProject.NET.Services.Register;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
